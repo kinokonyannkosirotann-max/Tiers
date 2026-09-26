@@ -9,6 +9,24 @@ const io = new Server(server, { cors: { origin: '*' } });
 // 待機キュー: { category: [ {socketId, user, isHighTier}, ... ] }
 const queues = {};
 const activeRooms = {}; // タイマー管理用
+// 認証コードの一時保存用 (実際の本番ではデータベースやGASに保存します)
+const pendingCodes = new Map(); // code -> expireTime など
+
+// モッドからの認証リクエストを受け取るエンドポイント
+app.post('/api/verify', (req, res) => {
+    const { uuid, code } = req.body;
+    
+    if (!uuid || !code) {
+        return res.status(400).send('Invalid data');
+    }
+
+    // ここでWeb側で発行したコードと一致するかチェック
+    console.log(`Received verification: UUID=${uuid}, Code=${code}`);
+    
+    // 成功したらスプレッドシートやGASに「このUUIDはこのユーザーのもの」として保存する処理を記述
+    
+    res.status(200).send({ success: true, message: 'Verified successfully' });
+});
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
